@@ -2,8 +2,10 @@ import json
 import os
 
 import requests
+from pyrogram.raw.base import InputPeer
 
 from ..core import SpawnProcess
+from ..stream.stream_type import StreamType
 
 
 class JoinGroupCall(SpawnProcess):
@@ -11,7 +13,23 @@ class JoinGroupCall(SpawnProcess):
         self.pytgcalls = pytgcalls
 
     # noinspection PyProtectedMember
-    def join_group_call(self, chat_id: int, file_path: str, bitrate: int):
+    def join_group_call(
+            self,
+            chat_id: int,
+            file_path: str,
+            bitrate: int = 48000,
+            join_as: InputPeer = None,
+            stream_type: StreamType = None,
+    ):
+        if join_as is None:
+            join_as = self.pytgcalls._cache_local_peer
+        if stream_type is None:
+            stream_type = StreamType().local_stream
+        if stream_type.stream_mode == 0:
+            raise Exception('Error internal: INVALID_STREAM_MODE')
+        if os.path.getsize(file_path) == 0:
+            raise Exception('Error internal: INVALID_FILE_STREAM')
+        self.pytgcalls._cache_user_peer[chat_id] = join_as
         bitrate = 48000 if bitrate > 48000 else bitrate
         if (
             self.pytgcalls._init_js_core and
@@ -32,6 +50,7 @@ class JoinGroupCall(SpawnProcess):
                             'chat_id': chat_id,
                             'file_path': file_path,
                             'bitrate': bitrate,
+                            'buffer_long': stream_type.stream_mode,
                             'session_id': self.pytgcalls._session_id,
                         }),
                     ),

@@ -1,17 +1,18 @@
 const { TGCalls, Stream } = require('./lib');
 const fetch = require('node-fetch');
-const fs = require('fs');
+
 
 class RTCConnection {
     #tgcalls = null;
     #stream = null;
     #sign_source = 0;
     #port_request = 0;
+    #current_logging = 0;
 
-    constructor(chat_id, path_file, port, bitrate, log_mode) {
+    constructor(chat_id, path_file, port, bitrate, log_mode, buffer_long) {
         this.#port_request = port;
         this.#tgcalls = new TGCalls();
-
+        this.#current_logging = log_mode;
         this.#tgcalls.joinVoiceCall = async payload => {
             const request_join_call = {
                 chat_id: chat_id,
@@ -50,8 +51,7 @@ class RTCConnection {
             return result;
         };
 
-        const readable = fs.createReadStream(path_file, { highWaterMark: 256 * 1024 });
-        this.#stream = new Stream(readable, 16, bitrate, 1, log_mode);
+        this.#stream = new Stream(path_file, 16, bitrate, 1, log_mode, buffer_long);
 
         this.#stream.OnStreamEnd = async () => {
             await fetch('http://localhost:' + this.#port_request + '/ended_stream', {
@@ -69,6 +69,10 @@ class RTCConnection {
             this.#sign_source = this.#tgcalls.getSignSource();
             return result;
         } catch (e) {
+            this.#stream.stop();
+            if (this.#current_logging > 1) {
+                console.log('JOIN_VOICE_CALL_ERROR ->', e)
+            }
             return false;
         }
     }
@@ -98,13 +102,12 @@ class RTCConnection {
         this.#stream.pause();
     }
 
-    resume() {
+    async resume() {
         this.#stream.resume();
     }
 
     change_stream(chat_id, path_file) {
-        const readable = fs.createReadStream(path_file, { highWaterMark: 256 * 1024 });
-        this.#stream.setReadable(readable);
+        this.#stream.setReadable(path_file);
     }
 }
 

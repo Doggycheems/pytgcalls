@@ -8,6 +8,19 @@
 
 This project allow to make Telegram group call with MTProto Api using Program and WebRTC, this is possible thanks to the power of NodeJS's WebRTC library, socketio-client and [@evgeny-nadymov]
 
+# Common Problems
+
+## Problem with pyrogram?
+If do you have problems with pyrogram, reinstall by this command
+``` bash
+pip install git+https://github.com/pyrogram/pyrogram -U
+```
+
+## Live stream or ffmpeg live conversion stopped?
+Check before if is changing the size of file(Is a method to check if ffmpeg is alive).
+
+If is alive and stream is stopped, report to the issue with including last ultra verbose log and put in to nekobin.
+
 ## Docs
 
 [Read the docs!][docs]
@@ -18,10 +31,10 @@ Here's how to install the PyTgCalls lib, the commands are given below:
 
 ``` bash
 # With Git
-pip install git+https://github.com/pytgcalls/pytgcalls
+pip install git+https://github.com/pytgcalls/pytgcalls -U
 
 # With PyPi
-pip install py-tgcalls
+pip install py-tgcalls -U
 ```
 
 ## Conversion commands
